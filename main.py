@@ -112,17 +112,14 @@ async def process_photo(message: Message):
 
 
 # ========== ЗАПУСК ==========
-async def set_webhook(bot: Bot):
-    """Устанавливает вебхук для Bothost"""
+async def on_startup():
+    """Запускается при старте приложения"""
+    logger.info("🚀 Запуск бота...")
+    
+    # Устанавливаем вебхук
     webhook_url = config.get_webhook_url()
     await bot.set_webhook(webhook_url)
     logger.info(f"✅ Вебхук установлен: {webhook_url}")
-
-
-async def on_startup(bot: Bot):
-    """Запускается при старте приложения"""
-    logger.info("🚀 Запуск бота...")
-    await set_webhook(bot)
 
     # Устанавливаем команды бота
     commands = [
