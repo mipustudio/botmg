@@ -11,12 +11,12 @@ from aiohttp import web
 
 from config import config, logger
 
-# Проверяем доступность PIL
+# ========== ПРОВЕРКА PIL ==========
 PIL_AVAILABLE = False
 try:
     from PIL import Image
     PIL_AVAILABLE = True
-    logger.info("✅ PIL/Pillow доступен для обработки изображений")
+    logger.info("✅ PIL/Pillow доступен")
 except ImportError as e:
     logger.warning(f"⚠️ PIL не установлен: {e}")
 
@@ -28,13 +28,14 @@ dp = Dispatcher(storage=MemoryStorage())
 LOGO_PATH = Path(__file__).parent / "logo.png"
 
 
+# ========== КЛАВИАТУРЫ ==========
 def create_main_keyboard() -> ReplyKeyboardMarkup:
-    """Создаёт главную клавиатуру с одной кнопкой"""
+    """Главная клавиатура с одной кнопкой"""
     keyboard = [[KeyboardButton(text="🖼️ Добавить логотип на фото")]]
     return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
 
 
-# ========== КОМАНДЫ ==========
+# ========== ХЕНДЛЕРЫ ==========
 @dp.message(CommandStart())
 async def start_command(message: Message):
     """Обработка команды /start"""
@@ -46,7 +47,6 @@ async def start_command(message: Message):
     await message.answer(welcome_text, reply_markup=create_main_keyboard())
 
 
-# ========== ОБРАБОТКА ФОТО ==========
 @dp.message(F.photo)
 async def process_photo(message: Message):
     """Обработка фото — добавление логотипа справа сверху"""
@@ -134,11 +134,8 @@ async def on_startup(bot: Bot):
 def create_web_app():
     """Создаёт веб-приложение для Bothost"""
     app = web.Application()
-
-    # Настраиваем вебхук
     SimpleRequestHandler(dp, bot).register(app, path="/webhook")
     setup_application(app, dp, bot=bot)
-
     return app
 
 
@@ -147,8 +144,6 @@ async def main():
     if config.BOT_ID:
         # Запуск через вебхук (Bothost)
         app = create_web_app()
-
-        # Устанавливаем онстартап коллбэк
         app.on_startup.append(on_startup)
 
         runner = web.AppRunner(app)
@@ -159,7 +154,6 @@ async def main():
         logger.info(f"🌐 Бот запущен на порту {config.PORT}")
         logger.info(f"🔗 Вебхук URL: {config.get_webhook_url()}")
 
-        # Держим приложение запущенным
         while True:
             await asyncio.sleep(3600)
     else:
